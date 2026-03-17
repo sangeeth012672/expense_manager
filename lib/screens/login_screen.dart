@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/auth_bloc.dart';
+import '../utils/app_colors.dart';
+import '../widgets/primary_button.dart';
 import 'otp_screen.dart';
-import 'home_screen.dart';
+import 'main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -39,70 +41,67 @@ class _LoginScreenState extends State<LoginScreen> {
         } else if (state is AuthAuthenticated) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(builder: (context) => const MainScreen()),
           );
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.error), backgroundColor: Colors.red),
+            SnackBar(content: Text(state.error), backgroundColor: AppColors.expense),
           );
         }
       },
       child: Scaffold(
+        backgroundColor: AppColors.background,
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Welcome Back!',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                const Text(
+                  'On Started',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Text(
+                const SizedBox(height: 12),
+                const Text(
                   'Enter your phone number to continue.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 48),
                 TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
+                  style: const TextStyle(color: AppColors.textPrimary),
                   decoration: const InputDecoration(
                     labelText: 'Phone Number',
-                    hintText: '+919876543210',
-                    prefixIcon: Icon(Icons.phone),
+                    hintText: '9876543210',
+                    prefixText: '+91 ',
+                    prefixStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                   ),
                 ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: BlocBuilder<AuthBloc, AuthState>(
-                    builder: (context, state) {
-                      return ElevatedButton(
-                        onPressed: state is AuthLoading
-                            ? null
-                            : () {
-                                if (_phoneController.text.isNotEmpty) {
-                                  context.read<AuthBloc>().add(SendOtpRequested(phone: _phoneController.text));
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Please enter a valid phone number')),
-                                  );
-                                }
-                              },
-                        child: state is AuthLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text('Send OTP', style: TextStyle(fontSize: 16)),
-                      );
-                    },
-                  ),
+                const Spacer(),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    return PrimaryButton(
+                      text: 'Continue',
+                      isLoading: state is AuthLoading,
+                      onPressed: () {
+                        if (_phoneController.text.isNotEmpty) {
+                          context.read<AuthBloc>().add(SendOtpRequested(phone: _phoneController.text));
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter a valid phone number')),
+                          );
+                        }
+                      },
+                    );
+                  },
                 ),
               ],
             ),

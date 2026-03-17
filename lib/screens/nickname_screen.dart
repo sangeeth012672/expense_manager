@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/auth_bloc.dart';
-import 'home_screen.dart';
+import '../utils/app_colors.dart';
+import '../widgets/primary_button.dart';
+import 'main_screen.dart';
 
 class NicknameScreen extends StatefulWidget {
   final String phone;
@@ -28,69 +30,60 @@ class _NicknameScreenState extends State<NicknameScreen> {
         if (state is AuthAuthenticated) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(builder: (context) => const MainScreen()),
             (route) => false,
           );
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.error), backgroundColor: Colors.red),
+            SnackBar(content: Text(state.error), backgroundColor: AppColors.expense),
           );
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Complete Profile'),
-        ),
+        backgroundColor: AppColors.background,
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'What should we call you?',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                const Text(
+                  'What should I call you?',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 48),
                 TextField(
                   controller: _nicknameController,
+                  style: const TextStyle(color: AppColors.textPrimary),
                   decoration: const InputDecoration(
                     labelText: 'Nickname',
-                    hintText: 'John Doe',
-                    prefixIcon: Icon(Icons.person),
+                    hintText: 'e.g. John Doe',
                   ),
                 ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: BlocBuilder<AuthBloc, AuthState>(
-                    builder: (context, state) {
-                      return ElevatedButton(
-                        onPressed: state is AuthLoading
-                            ? null
-                            : () {
-                                if (_nicknameController.text.isNotEmpty) {
-                                  context.read<AuthBloc>().add(CreateAccountRequested(
-                                        phone: widget.phone,
-                                        nickname: _nicknameController.text,
-                                      ));
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Please enter a nickname')),
-                                  );
-                                }
-                              },
-                        child: state is AuthLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text('Create Account', style: TextStyle(fontSize: 16)),
-                      );
-                    },
-                  ),
+                const Spacer(),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    return PrimaryButton(
+                      text: 'Create Account',
+                      isLoading: state is AuthLoading,
+                      onPressed: () {
+                        if (_nicknameController.text.isNotEmpty) {
+                          context.read<AuthBloc>().add(CreateAccountRequested(
+                                phone: widget.phone,
+                                nickname: _nicknameController.text,
+                              ));
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter a nickname')),
+                          );
+                        }
+                      },
+                    );
+                  },
                 ),
               ],
             ),

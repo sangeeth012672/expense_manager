@@ -5,166 +5,229 @@ import '../blocs/transaction_bloc.dart';
 import '../blocs/transaction_event.dart';
 import '../blocs/transaction_state.dart';
 import '../blocs/sync_bloc.dart';
-import '../blocs/sync_event.dart';
 import '../blocs/sync_state.dart';
-import 'onboarding_screen.dart';
-import 'category_screen.dart';
+import '../blocs/sync_event.dart';
+import '../utils/app_colors.dart';
+import '../widgets/shimmer_loader.dart';
+import '../widgets/monthly_limit_card.dart';
+import '../widgets/transaction_card.dart' as widgets;
 import 'transactions_screen.dart';
-import 'add_transaction_sheet.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Dispatch event to load data
     context.read<TransactionBloc>().add(LoadTransactions());
 
     return BlocListener<SyncBloc, SyncState>(
       listener: (context, state) {
         if (state is SyncSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Sync Completed Successfully'), backgroundColor: Colors.green),
-          );
-        } else if (state is SyncFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text('Sync Failed: ${state.error}'), backgroundColor: Colors.red),
+             const SnackBar(content: Text('Sync Completed Successfully'), backgroundColor: AppColors.income),
           );
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Expense Manager'),
-          actions: [
-             BlocBuilder<SyncBloc, SyncState>(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Stack(
+            children: [
+              BlocBuilder<TransactionBloc, TransactionState>(
                 builder: (context, state) {
-                   if (state is SyncInProgress) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.only(right: 16.0),
-                          child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                        ),
-                      );
-                   }
-                   return IconButton(
-                      icon: const Icon(Icons.sync),
-                      onPressed: () => context.read<SyncBloc>().add(StartSync()),
-                   );
+                  if (state is TransactionLoading) {
+                    return ListView(
+                      padding: const EdgeInsets.all(24.0),
+                      children: List.generate(5, (_) => const TransactionShimmer()),
+                    );
+                  }
+                  if (state is TransactionLoaded) {
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<TransactionBloc>().add(LoadTransactions());
+                      },
+                      child: ListView(
+                        padding: const EdgeInsets.all(24.0),
+                        children: [
+                          _buildHeader(context),
+                          const SizedBox(height: 24),
+                          _buildSummaryCards(state.totalIncome, state.totalExpense),
+                          const SizedBox(height: 24),
+                          MonthlyLimitCard(
+                            currentSpend: state.totalExpense,
+                            limit: 50000.0,
+                          ),
+                          const SizedBox(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Recent Transactions', 
+                                style: TextStyle(
+                                  fontSize: 18, 
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TransactionsScreen())),
+                                child: const Text('See All', style: TextStyle(color: AppColors.primary)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          ...state.transactions.take(5).map((t) => widgets.TransactionCard(transaction: t)).toList(),
+                          if (state.transactions.isEmpty) _buildEmptyState(),
+                        ],
+                      ),
+                    );
+                  }
+                  return const Center(child: Text('Error loading dashboard'));
                 },
-             ),
-            IconButton(
-              icon: const Icon(Icons.category),
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoryScreen())),
-            ),
-            IconButton(
-              icon: const Icon(Icons.list),
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TransactionsScreen())),
-            ),
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                 context.read<AuthBloc>().add(LogoutRequested());
-                 Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const OnboardingScreen()),
-                  (route) => false,
-                );
-              },
-            )
-          ],
+              ),
+              BlocBuilder<SyncBloc, SyncState>(
+                builder: (context, state) {
+                  if (state is SyncInProgress) {
+                    return Container(
+                      color: Colors.black54,
+                      child: const Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(color: AppColors.primary),
+                            SizedBox(height: 16),
+                            Text('Syncing with cloud...', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ],
+          ),
         ),
-      body: BlocBuilder<TransactionBloc, TransactionState>(
-        builder: (context, state) {
-          if (state is TransactionLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is TransactionLoaded) {
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<TransactionBloc>().add(LoadTransactions());
-              },
-              child: ListView(
-                padding: const EdgeInsets.all(16.0),
-                children: [
-                  _buildBalanceCard(context, state.totalIncome, state.totalExpense),
-                  const SizedBox(height: 24),
-                  const Text('Recent Transactions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  ...state.transactions.take(10).map((t) => TransactionCard(transaction: t)).toList(),
-                  if (state.transactions.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(24.0),
-                      child: Center(child: Text('No transactions yet.', style: TextStyle(color: Colors.grey))),
-                    )
-                ],
-              ),
-            );
-          } else if (state is TransactionError) {
-             return Center(child: Text(state.message, style: const TextStyle(color: Colors.red)));
-          }
-          return const Center(child: Text('Initial State'));
-        },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-           showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              builder: (_) => const AddTransactionSheet(),
-           );
-        },
-        child: const Icon(Icons.add),
-      ),
-    ),
-  );
-}
+    );
+  }
 
-  Widget _buildBalanceCard(BuildContext context, double income, double expense) {
+  Widget _buildHeader(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        String name = 'User';
+        if (state is AuthAuthenticated) {
+          // fetch name logic
+        }
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                 const Text(
+                  'Welcome,',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                ),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.search_rounded, color: AppColors.textPrimary),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.sync_rounded, color: AppColors.textPrimary),
+                  onPressed: () => context.read<SyncBloc>().add(StartSync()),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.notifications_rounded, color: AppColors.textPrimary),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSummaryCards(double income, double expense) {
+    return Row(
+      children: [
+        Expanded(child: _buildSummaryCard('Income', income, AppColors.income)),
+        const SizedBox(width: 16),
+        Expanded(child: _buildSummaryCard('Expense', expense, AppColors.expense)),
+      ],
+    );
+  }
+
+  Widget _buildSummaryCard(String label, double amount, Color color) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor,
+        color: color,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5))
-        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Total Balance', style: TextStyle(color: Colors.white70, fontSize: 16)),
-          const SizedBox(height: 8),
-          Text(
-            '₹${(income - expense).toStringAsFixed(2)}',
-            style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 24),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-               _buildIncomeExpenseRow('Income', income, Colors.greenAccent),
-               _buildIncomeExpenseRow('Expense', expense, Colors.redAccent),
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  label == 'Income' ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+              ),
             ],
-          )
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '₹${amount.toInt()}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildIncomeExpenseRow(String title, double amount, Color color) {
-    return Column(
-      children: [
-        Row(
-           children: [
-             Icon(title == 'Income' ? Icons.arrow_downward : Icons.arrow_upward, color: color, size: 16),
-             const SizedBox(width: 4),
-             Text(title, style: const TextStyle(color: Colors.white70)),
-           ]
+  Widget _buildEmptyState() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 40.0),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(Icons.receipt_long_rounded, size: 64, color: AppColors.surfaceLight),
+            SizedBox(height: 16),
+            Text('No transactions yet.', style: TextStyle(color: AppColors.textSecondary)),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text('₹${amount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-      ],
+      ),
     );
   }
 }

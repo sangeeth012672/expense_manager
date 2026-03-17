@@ -15,9 +15,7 @@ import 'blocs/category_event.dart';
 import 'blocs/transaction_bloc.dart';
 import 'blocs/transaction_event.dart';
 import 'blocs/sync_bloc.dart';
-import 'screens/onboarding_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,45 +73,11 @@ class MyApp extends StatelessWidget {
         ],
         child: MaterialApp(
           title: 'Expense Manager',
-          theme: AppTheme.lightTheme,
-          home: const InitialScreenWrapper(),
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.darkTheme,
+          home: const SplashScreen(),
         ),
       ),
-    );
-  }
-}
-
-class InitialScreenWrapper extends StatelessWidget {
-  const InitialScreenWrapper({super.key});
-
-  Future<bool> _hasSeenOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('hasSeenOnboarding') ?? false;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is AuthAuthenticated) {
-          return const HomeScreen();
-        } else if (state is AuthUnauthenticated) {
-          return FutureBuilder<bool>(
-            future: _hasSeenOnboarding(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(body: Center(child: CircularProgressIndicator()));
-              }
-              if (snapshot.data == true) {
-                return const LoginScreen();
-              } else {
-                return const OnboardingScreen();
-              }
-            },
-          );
-        }
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
-      },
     );
   }
 }
