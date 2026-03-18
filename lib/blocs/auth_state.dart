@@ -25,16 +25,18 @@ class AuthOtpSent extends AuthState {
   final bool? userExists;
   final String? token;
   final String? nickname;
+  final String? otp;
 
   const AuthOtpSent({
     required this.phone,
     this.userExists,
     this.token,
     this.nickname,
+    this.otp,
   });
 
   @override
-  List<Object?> get props => [phone, userExists, token, nickname];
+  List<Object?> get props => [phone, userExists, token, nickname, otp];
 }
 
 class AuthNeedsNickname extends AuthState {

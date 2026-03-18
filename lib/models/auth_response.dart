@@ -4,6 +4,7 @@ class AuthResponse {
   final bool? userExists;
   final String? token;
   final String? nickname;
+  final String? otp;
 
   AuthResponse({
     required this.isSuccess,
@@ -11,6 +12,7 @@ class AuthResponse {
     this.userExists,
     this.token,
     this.nickname,
+    this.otp,
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class AuthResponse {
       userExists: json['user_exists'] as bool?,
       token: json['token'] as String?,
       nickname: json['nickname'] as String?,
+      otp: json['otp']?.toString(),
     );
   }
 }

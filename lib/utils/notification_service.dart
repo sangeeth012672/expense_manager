@@ -23,7 +23,7 @@ class NotificationService {
     );
   }
 
-  Future<void> showLimitExceededNotification(double newTotal) async {
+  Future<void> showLimitExceededNotification(double newTotal, double limit) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'budget_alerts',
@@ -39,7 +39,7 @@ class NotificationService {
     await _notificationsPlugin.show(
       id: 0,
       title: 'Budget Limit Exceeded!',
-      body: 'You have spent ₹${newTotal.toStringAsFixed(2)} this month, exceeding your ₹1000 limit.',
+      body: 'You have spent ₹${newTotal.toStringAsFixed(2)} this month, exceeding your ₹${limit.toStringAsFixed(0)} limit.',
       notificationDetails: platformChannelSpecifics,
     );
   }

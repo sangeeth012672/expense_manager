@@ -35,3 +35,13 @@ class TransactionError extends TransactionState {
   @override
   List<Object> get props => [message];
 }
+
+class TransactionLimitExceeded extends TransactionState {
+  final double totalExpense;
+  final double limit;
+
+  const TransactionLimitExceeded({required this.totalExpense, required this.limit});
+
+  @override
+  List<Object> get props => [totalExpense, limit];
+}

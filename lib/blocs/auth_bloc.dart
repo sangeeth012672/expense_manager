@@ -35,8 +35,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final response = await authRepository.sendOtp(event.phone);
-      // For testing, user_exists, nickname, and token might be returned
-      emit(AuthOtpSent(phone: event.phone, userExists: response.userExists, token: response.token, nickname: response.nickname));
+      // For testing, user_exists, nickname, token, and otp are returned
+      emit(AuthOtpSent(
+        phone: event.phone, 
+        userExists: response.userExists, 
+        token: response.token, 
+        nickname: response.nickname,
+        otp: response.otp,
+      ));
     } catch (e) {
       emit(AuthError(error: e.toString()));
     }

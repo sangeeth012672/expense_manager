@@ -20,16 +20,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Privacy by Default, With Zero\nAds or Hidden Tracking',
       description: 'No ads. No trackers. No third-party analytics.',
       icon: Icons.shield_rounded,
+      image: 'assets/images/onboarding_1.png',
     ),
     OnboardingData(
       title: 'Insights That Help You Spend\nBetter Without Complexity',
-      description: 'See Category-wise pending, recent activity.',
+      description: 'See category-wise spending, recent activity.',
       icon: Icons.auto_graph_rounded,
+      image: 'assets/images/onboarding_2.png',
     ),
     OnboardingData(
       title: 'Local-First Tracking That\nStays Fully On Your Device',
-      description: 'Your finances stay on your device.',
+      description: 'Your finances stay on your phone.',
       icon: Icons.devices_rounded,
+      image: 'assets/images/onboarding_3.png',
     ),
   ];
 
@@ -47,26 +50,46 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          // Content
-          Column(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Stack(
             children: [
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: _pages.length,
-                  onPageChanged: (index) {
-                    setState(() => _currentPage = index);
-                  },
-                  itemBuilder: (context, index) {
-                    return OnboardingPage(data: _pages[index], currentPage: _currentPage, totalPages: _pages.length);
-                  },
+              // Content
+              PageView.builder(
+                controller: _pageController,
+                itemCount: _pages.length,
+                onPageChanged: (index) => setState(() => _currentPage = index),
+                itemBuilder: (context, index) {
+                  return OnboardingPage(
+                    data: _pages[index],
+                    currentPage: index,
+                    totalPages: _pages.length,
+                  );
+                },
+              ),
+              // Skip Button
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 20,
+                right: 24,
+                child: GestureDetector(
+                  onTap: _onDone,
+                  child: const Text(
+                    'SKIP',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                 ),
               ),
-              // Bottom Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32),
+              // Bottom Action Row
+              Positioned(
+                bottom: 30,
+                left: 24,
+                right: 24,
                 child: Row(
                   children: [
                     if (_currentPage > 0) ...[
@@ -78,11 +101,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           );
                         },
                         child: Container(
-                          width: 58,
-                          height: 58,
+                          width: 56,
+                          height: 56,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white24),
+                            border: Border.all(color: Colors.white12, width: 1.5),
                           ),
                           child: const Icon(
                             Icons.arrow_back_rounded,
@@ -113,24 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ],
           ),
-          // Skip Button
-          Positioned(
-            top: 60,
-            right: 24,
-            child: TextButton(
-              onPressed: _onDone,
-              child: const Text(
-                'SKIP',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -140,8 +146,14 @@ class OnboardingData {
   final String title;
   final String description;
   final IconData icon;
+  final String image;
 
-  OnboardingData({required this.title, required this.description, required this.icon});
+  OnboardingData({
+    required this.title, 
+    required this.description, 
+    required this.icon,
+    required this.image,
+  });
 }
 
 class OnboardingPage extends StatelessWidget {
@@ -150,111 +162,100 @@ class OnboardingPage extends StatelessWidget {
   final int totalPages;
 
   const OnboardingPage({
-    Key? key, 
-    required this.data, 
-    required this.currentPage, 
-    required this.totalPages
+    Key? key,
+    required this.data,
+    required this.currentPage,
+    required this.totalPages,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        children: [
-          const Spacer(flex: 2),
-          // Graphic Area
-          Container(
-            width: 280,
-            height: 280,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.1),
-                  blurRadius: 100,
-                  spreadRadius: 20,
-                ),
-              ],
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Subtle glowing background for the icon
-                Container(
-                  width: 180,
-                  height: 180,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.primary.withOpacity(0.2),
-                        AppColors.primary.withOpacity(0),
-                      ],
-                    ),
-                  ),
-                ),
-                Icon(
-                  data.icon,
-                  size: 140,
-                  color: AppColors.primary.withOpacity(0.8),
-                ),
-                const Icon(
-                  Icons.lock_rounded,
-                  size: 60,
-                  color: Colors.white24,
-                ),
-              ],
-            ),
+    return Stack(
+      children: [
+        // Background Image
+        Positioned.fill(
+          child: Image.asset(
+            data.image,
+            fit: BoxFit.cover,
           ),
-          const Spacer(flex: 2),
-          // Progress Indicator
-          Row(
-            children: List.generate(
-              totalPages,
-              (index) => Expanded(
-                child: Container(
-                  height: 3,
-                  margin: EdgeInsets.only(right: index == totalPages - 1 ? 0 : 8),
-                  decoration: BoxDecoration(
-                    color: index <= currentPage ? Colors.white : Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+        ),
+        // Gradient Overlay for Text Readability
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.1),
+                  Colors.black.withOpacity(0.3),
+                  Colors.black.withOpacity(0.95),
+                ],
+                stops: const [0.0, 0.4, 0.9],
               ),
             ),
           ),
-          const SizedBox(height: 32),
-          // Text Content
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data.title,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  data.description,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                    height: 1.5,
-                  ),
-                ),
-              ],
+        ),
+        // Content
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildProgressIndicator(),
+              const SizedBox(height: 32),
+              _buildTextContent(),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressIndicator() {
+    return Row(
+      children: List.generate(
+        totalPages,
+        (index) => Expanded(
+          child: Container(
+            height: 3,
+            margin: EdgeInsets.only(right: index == totalPages - 1 ? 0 : 8),
+            decoration: BoxDecoration(
+              color: index <= currentPage ? Colors.white : Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(height: 20),
-        ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildTextContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          data.title,
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            height: 1.2,
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          data.description,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.white60,
+            height: 1.5,
+          ),
+        ),
+      ],
     );
   }
 }

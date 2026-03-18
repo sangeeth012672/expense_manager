@@ -11,6 +11,7 @@ class OtpScreen extends StatefulWidget {
   final bool? userExists;
   final String? token;
   final String? nickname;
+  final String? otp;
 
   const OtpScreen({
     Key? key,
@@ -18,6 +19,7 @@ class OtpScreen extends StatefulWidget {
     this.userExists,
     this.token,
     this.nickname,
+    this.otp,
   }) : super(key: key);
 
   @override
@@ -119,6 +121,32 @@ class _OtpScreenState extends State<OtpScreen> {
                     ),
                   ),
                 ),
+                if (widget.otp != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Test OTP: ${widget.otp}',
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 48),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -131,7 +159,8 @@ class _OtpScreenState extends State<OtpScreen> {
                       text: 'Verify',
                       isLoading: state is AuthLoading,
                       onPressed: () {
-                        if (_otp == '123456') {
+                        final expectedOtp = widget.otp ?? '123456';
+                        if (_otp == expectedOtp) {
                           context.read<AuthBloc>().add(VerifyOtpRequested(
                                 phone: widget.phone,
                                 otp: _otp,
@@ -141,7 +170,7 @@ class _OtpScreenState extends State<OtpScreen> {
                               ));
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Invalid OTP. Use 123456 for testing.')),
+                            SnackBar(content: Text('Invalid OTP. Use $expectedOtp for testing.')),
                           );
                         }
                       },

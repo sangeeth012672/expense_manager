@@ -3,6 +3,7 @@ import '../repositories/transaction_repository.dart';
 import '../utils/notification_service.dart';
 import 'transaction_event.dart';
 import 'transaction_state.dart';
+import '../repositories/settings_repository.dart';
 
 class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   final TransactionRepository repository;
@@ -43,11 +44,14 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     try {
       await repository.addTransaction(event.amount, event.note, event.type, event.categoryId);
       
-      // Phase 4: Trigger local notification when limit exceeded.
+      // Phase 4: Trigger local notification & state when limit exceeded.
       if (event.type == 'debit') {
          final totalDebits = await repository.getCurrentMonthDebits();
-         if (totalDebits > 1000) {
-            await NotificationService().showLimitExceededNotification(totalDebits);
+         final limit = await SettingsRepository().getBudgetLimit();
+         
+         if (totalDebits > limit) {
+            await NotificationService().showLimitExceededNotification(totalDebits, limit);
+            emit(TransactionLimitExceeded(totalExpense: totalDebits, limit: limit));
          }
       }
 
