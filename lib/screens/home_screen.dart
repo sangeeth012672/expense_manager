@@ -12,8 +12,33 @@ import '../widgets/monthly_limit_card.dart';
 import '../widgets/transaction_card.dart' as widgets;
 import 'transactions_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+import '../repositories/settings_repository.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final SettingsRepository _settingsRepository = SettingsRepository();
+  double _budgetLimit = 1000.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final limit = await _settingsRepository.getBudgetLimit();
+    if (mounted) {
+      setState(() {
+        _budgetLimit = limit;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +68,7 @@ class HomeScreen extends StatelessWidget {
                   if (state is TransactionLoaded) {
                     return RefreshIndicator(
                       onRefresh: () async {
+                        await _loadSettings();
                         context.read<TransactionBloc>().add(LoadTransactions());
                       },
                       child: ListView(
@@ -54,7 +80,7 @@ class HomeScreen extends StatelessWidget {
                           const SizedBox(height: 24),
                           MonthlyLimitCard(
                             currentSpend: state.totalExpense,
-                            limit: 1000.0,
+                            limit: _budgetLimit,
                           ),
                           const SizedBox(height: 32),
                           Row(

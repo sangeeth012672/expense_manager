@@ -9,6 +9,8 @@ import '../blocs/sync_bloc.dart';
 import '../blocs/sync_event.dart';
 import '../blocs/sync_state.dart';
 
+import '../repositories/settings_repository.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
@@ -19,6 +21,22 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _limitController = TextEditingController();
+  final SettingsRepository _settingsRepository = SettingsRepository();
+  double _currentLimit = 1000.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final limit = await _settingsRepository.getBudgetLimit();
+    setState(() {
+      _currentLimit = limit;
+      _limitController.text = limit.toInt().toString();
+    });
+  }
 
   @override
   void dispose() {
@@ -175,19 +193,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              GestureDetector(
-                onTap: () {
-                  // TODO: Save limit
-                },
-                child: Container(
-                  height: 54,
-                  width: 80,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4351FF), // Changed to Blue
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(
-                    child: Text(
+              Material(
+                color: const Color(0xFF4351FF),
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () async {
+                    final newLimit = double.tryParse(_limitController.text);
+                    if (newLimit != null) {
+                      await _settingsRepository.setBudgetLimit(newLimit);
+                      setState(() {
+                        _currentLimit = newLimit;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Budget limit updated!')),
+                      );
+                    }
+                  },
+                  child: Container(
+                    height: 54,
+                    width: 80,
+                    alignment: Alignment.center,
+                    child: const Text(
                       'Set',
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
@@ -197,9 +224,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Current Limit: ₹1,000',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          Text(
+            'Current Limit: ₹${_currentLimit.toInt().toString().replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]},")}',
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ],
       ),
@@ -238,21 +265,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              GestureDetector(
-                onTap: () {
-                  if (_categoryController.text.isNotEmpty) {
-                    context.read<CategoryBloc>().add(AddCategory(_categoryController.text));
-                    _categoryController.clear();
-                  }
-                },
-                child: Container(
-                  height: 54,
-                  width: 60,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4351FF), // Changed to Blue
-                    borderRadius: BorderRadius.circular(12),
+              Material(
+                color: const Color(0xFF4351FF),
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    if (_categoryController.text.isNotEmpty) {
+                      context.read<CategoryBloc>().add(AddCategory(_categoryController.text));
+                      _categoryController.clear();
+                      FocusScope.of(context).unfocus();
+                    }
+                  },
+                  child: Container(
+                    height: 54,
+                    width: 60,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.add_rounded, color: Colors.white),
                   ),
-                  child: const Icon(Icons.add_rounded, color: Colors.white),
                 ),
               ),
             ],
@@ -285,18 +315,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             name,
             style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
           ),
-          GestureDetector(
-            onTap: () {
-              context.read<CategoryBloc>().add(DeleteCategory(id));
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2C1616),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF421D1D)),
+          Material(
+            color: const Color(0xFF2C1616),
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () {
+                context.read<CategoryBloc>().add(DeleteCategory(id));
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF421D1D)),
+                ),
+                child: const Icon(Icons.delete_outline_rounded, color: Color(0xFFFF5656), size: 18),
               ),
-              child: const Icon(Icons.delete_outline_rounded, color: Color(0xFFFF5656), size: 18),
             ),
           ),
         ],
@@ -307,43 +341,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildCloudSyncCard() {
     return BlocBuilder<SyncBloc, SyncState>(
       builder: (context, state) {
-        return GestureDetector(
-          onTap: () {
-            context.read<SyncBloc>().add(StartSync());
-          },
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0xFF17171F),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.divider.withOpacity(0.5)),
-            ),
+        return Material(
+          color: const Color(0xFF17171F),
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              context.read<SyncBloc>().add(StartSync());
+            },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF20295C),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.divider.withOpacity(0.5)),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Sync To Cloud',
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          state is SyncInProgress ? 'Syncing...' : 'Sync and update data to the backend',
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
-                      ],
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF20295C),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Sync To Cloud',
+                            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            state is SyncInProgress ? 'Syncing...' : 'Sync and update data to the backend',
+                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const Icon(Icons.cloud_upload_outlined, color: Colors.white, size: 28),
-                ],
+                    const Icon(Icons.cloud_upload_outlined, color: Colors.white, size: 28),
+                  ],
+                ),
               ),
             ),
           ),
@@ -353,26 +391,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildLogoutButton() {
-    return GestureDetector(
-      onTap: () => context.read<AuthBloc>().add(LogoutRequested()),
-      child: Container(
-        height: 60,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: const Color(0xFF17171F),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider.withOpacity(0.5)),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Log Out',
-              style: TextStyle(color: Color(0xFFFF5656), fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            SizedBox(width: 12),
-            Icon(Icons.power_settings_new_rounded, color: Color(0xFFFF5656), size: 20),
-          ],
+    return Material(
+      color: const Color(0xFF17171F),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => context.read<AuthBloc>().add(LogoutRequested()),
+        child: Container(
+          height: 60,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Log Out',
+                style: TextStyle(color: Color(0xFFFF5656), fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              SizedBox(width: 12),
+              Icon(Icons.power_settings_new_rounded, color: Color(0xFFFF5656), size: 20),
+            ],
+          ),
         ),
       ),
     );
