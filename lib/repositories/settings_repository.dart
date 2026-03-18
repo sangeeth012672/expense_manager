@@ -12,4 +12,9 @@ class SettingsRepository {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getDouble(_keyBudgetLimit) ?? 1000.0;
   }
+
+  Future<void> clearAllSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyBudgetLimit);
+  }
 }

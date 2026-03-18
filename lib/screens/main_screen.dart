@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../utils/app_colors.dart';
+import '../blocs/auth_bloc.dart';
 import 'home_screen.dart';
 import 'transactions_screen.dart';
 import 'profile_screen.dart';
 import 'add_transaction_sheet.dart';
+import 'splash_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -23,8 +26,17 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_selectedIndex],
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthUnauthenticated) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const SplashScreen()),
+            (route) => false,
+          );
+        }
+      },
+      child: Scaffold(
+        body: _screens[_selectedIndex],
       bottomNavigationBar: Container(
         padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
         child: Container(
@@ -61,6 +73,7 @@ class _MainScreenState extends State<MainScreen> {
               ),
             )
           : null,
+      ),
     );
   }
 

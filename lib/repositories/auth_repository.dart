@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import '../utils/theme.dart';
 import '../models/auth_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'database_helper.dart';
+import 'settings_repository.dart';
 
 class AuthRepository {
   final http.Client client;
@@ -57,5 +59,9 @@ class AuthRepository {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('nickname');
+    
+    // Clear local data
+    await DatabaseHelper.instance.clearAllData();
+    await SettingsRepository().clearAllSettings();
   }
 }
