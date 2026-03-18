@@ -18,7 +18,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const TransactionsScreen(),
-    const ProfileScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -26,42 +26,61 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: _screens[_selectedIndex],
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
-          backgroundColor: AppColors.background,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textHint,
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_rounded),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long_rounded),
-              label: 'Transactions',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded),
-              label: 'Profile',
-            ),
-          ],
+        padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
+        child: Container(
+          height: 64,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildNavItem(0, Icons.pie_chart_rounded),
+              _buildNavItem(1, Icons.history_rounded),
+              _buildNavItem(2, Icons.account_circle_rounded),
+            ],
+          ),
         ),
       ),
       floatingActionButton: _selectedIndex == 0 
-          ? FloatingActionButton(
-              onPressed: () => _showAddTransaction(context),
-              backgroundColor: AppColors.primary,
-              child: const Icon(Icons.add_rounded, color: Colors.white, size: 32),
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 80, right: 0),
+              child: FloatingActionButton(
+                onPressed: () => _showAddTransaction(context),
+                backgroundColor: const Color(0xFF2FB73C),
+                elevation: 4,
+                child: const Icon(Icons.add_rounded, color: Colors.white, size: 32),
+              ),
             )
           : null,
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon) {
+    final isSelected = _selectedIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedIndex = index),
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF4351FF) : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: isSelected ? Colors.white : Colors.white54,
+          size: 24,
+        ),
+      ),
     );
   }
 

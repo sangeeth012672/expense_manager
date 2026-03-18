@@ -48,11 +48,13 @@ class AuthNeedsNickname extends AuthState {
 
 class AuthAuthenticated extends AuthState {
   final String token;
+  final String? nickname;
+  final String? phone;
 
-  const AuthAuthenticated({required this.token});
+  const AuthAuthenticated({required this.token, this.nickname, this.phone});
 
   @override
-  List<Object> get props => [token];
+  List<Object?> get props => [token, nickname, phone];
 }
 
 class AuthUnauthenticated extends AuthState {}

@@ -6,7 +6,6 @@ import '../blocs/transaction_event.dart';
 import '../blocs/transaction_state.dart';
 import '../blocs/sync_bloc.dart';
 import '../blocs/sync_state.dart';
-import '../blocs/sync_event.dart';
 import '../utils/app_colors.dart';
 import '../widgets/shimmer_loader.dart';
 import '../widgets/monthly_limit_card.dart';
@@ -55,7 +54,7 @@ class HomeScreen extends StatelessWidget {
                           const SizedBox(height: 24),
                           MonthlyLimitCard(
                             currentSpend: state.totalExpense,
-                            limit: 50000.0,
+                            limit: 1000.0,
                           ),
                           const SizedBox(height: 32),
                           Row(
@@ -76,7 +75,7 @@ class HomeScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          ...state.transactions.take(5).map((t) => widgets.TransactionCard(transaction: t)).toList(),
+                          ...state.transactions.take(10).map((t) => widgets.TransactionCard(transaction: t)).toList(),
                           if (state.transactions.isEmpty) _buildEmptyState(),
                         ],
                       ),
@@ -115,47 +114,20 @@ class HomeScreen extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        String name = 'User';
-        if (state is AuthAuthenticated) {
-          // fetch name logic
+        String name = 'Naazley';
+        if (state is AuthAuthenticated && state.nickname != null) {
+          name = state.nickname!;
         }
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                 const Text(
-                  'Welcome,',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                ),
-                Text(
-                  name,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+        return Padding(
+          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+          child: Text(
+            '👋 Welcome, $name!',
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
             ),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.search_rounded, color: AppColors.textPrimary),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: const Icon(Icons.sync_rounded, color: AppColors.textPrimary),
-                  onPressed: () => context.read<SyncBloc>().add(StartSync()),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.notifications_rounded, color: AppColors.textPrimary),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ],
+          ),
         );
       },
     );
@@ -164,52 +136,72 @@ class HomeScreen extends StatelessWidget {
   Widget _buildSummaryCards(double income, double expense) {
     return Row(
       children: [
-        Expanded(child: _buildSummaryCard('Income', income, AppColors.income)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildSummaryCard('Expense', expense, AppColors.expense)),
+        Expanded(
+          child: _buildSummaryCard(
+            'Total Income', 
+            income, 
+            [const Color(0xFF007A1D), const Color(0xFF004D12)], // Green Gradient
+            Icons.south_west_rounded,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildSummaryCard(
+            'Total Expense', 
+            expense, 
+            [const Color(0xFFB10000), const Color(0xFF8B0000)], // Red Gradient
+            Icons.north_east_rounded,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSummaryCard(String label, double amount, Color color) {
+  Widget _buildSummaryCard(String label, double amount, List<Color> gradient, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
-        color: color,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradient,
+        ),
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: gradient[0].withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  label == 'Income' ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
-                  size: 14,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
-              ),
-            ],
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          Text(
-            '₹${amount.toInt()}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Icon(icon, size: 18, color: Colors.white),
+              const SizedBox(width: 4),
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '₹${amount.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

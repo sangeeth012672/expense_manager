@@ -48,6 +48,11 @@ class AuthRepository {
     return prefs.getString('token');
   }
 
+  Future<String?> getNickname() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('nickname');
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');

@@ -20,8 +20,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final token = await authRepository.getToken();
+      final nickname = await authRepository.getNickname();
       if (token != null) {
-        emit(AuthAuthenticated(token: token));
+        emit(AuthAuthenticated(token: token, nickname: nickname));
       } else {
         emit(AuthUnauthenticated());
       }
@@ -48,7 +49,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // If true, we already have token & nickname from the first step.
     if (event.userExists == true) {
       await authRepository.saveTokenAndNickname(event.token ?? '', event.nickname ?? '');
-      emit(AuthAuthenticated(token: event.token ?? ''));
+      emit(AuthAuthenticated(token: event.token ?? '', nickname: event.nickname));
     } else {
       emit(AuthNeedsNickname(phone: event.phone));
     }
@@ -59,7 +60,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final response = await authRepository.createAccount(event.phone, event.nickname);
       await authRepository.saveTokenAndNickname(response.token ?? '', event.nickname);
-      emit(AuthAuthenticated(token: response.token ?? ''));
+      emit(AuthAuthenticated(token: response.token ?? '', nickname: event.nickname));
     } catch (e) {
       emit(AuthError(error: e.toString()));
     }

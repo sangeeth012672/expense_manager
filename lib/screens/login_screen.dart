@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'On Started',
+                  'Get Started',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -67,22 +67,50 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Enter your phone number to continue.',
+                  'Log In Using Phone & OTP',
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 48),
-                TextField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number',
-                    hintText: '9876543210',
-                    prefixText: '+91 ',
-                    prefixStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                const SizedBox(height: 32),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: TextField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
+                    decoration: InputDecoration(
+                      hintText: 'Phone',
+                      hintStyle: TextStyle(color: AppColors.textHint),
+                      prefixIcon: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '+91',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Container(
+                              width: 1,
+                              height: 20,
+                              color: AppColors.divider,
+                            ),
+                          ],
+                        ),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 20),
+                    ),
                   ),
                 ),
                 const Spacer(),

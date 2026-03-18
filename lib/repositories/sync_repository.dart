@@ -30,7 +30,20 @@ class SyncRepository {
     final headers = await _headers();
 
     // STEP A: Clean up Deletions (Cloud Purge)
-    // 1. Categories
+    // 1. Transactions
+    final deletedTransactionIds = await transactionRepository.getDeletedTransactionsIds();
+    if (deletedTransactionIds.isNotEmpty) {
+      final response = await client.delete(
+        Uri.parse('${AppConstants.baseUrl}/transactions/delete/'),
+        headers: headers,
+        body: jsonEncode({'ids': deletedTransactionIds}),
+      );
+      if (response.statusCode == 200) {
+        await transactionRepository.permanentlyDelete(deletedTransactionIds);
+      }
+    }
+
+    // 2. Categories
     final deletedCategoryIds = await categoryRepository.getDeletedCategoriesIds();
     if (deletedCategoryIds.isNotEmpty) {
       final response = await client.delete(
@@ -41,19 +54,6 @@ class SyncRepository {
       if (response.statusCode == 200) {
         // Only after API confirms success, permanently delete.
          await categoryRepository.permanentlyDelete(deletedCategoryIds);
-      }
-    }
-
-    // 2. Transactions
-    final deletedTransactionIds = await transactionRepository.getDeletedTransactionsIds();
-    if (deletedTransactionIds.isNotEmpty) {
-      final response = await client.delete(
-        Uri.parse('${AppConstants.baseUrl}/transactions/delete/'),
-        headers: headers,
-        body: jsonEncode({'ids': deletedTransactionIds}),
-      );
-      if (response.statusCode == 200) {
-        await transactionRepository.permanentlyDelete(deletedTransactionIds);
       }
     }
 

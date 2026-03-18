@@ -47,41 +47,66 @@ class _NicknameScreenState extends State<NicknameScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const Row(
+                  children: [
+                    Text(
+                      '👋 ',
+                      style: TextStyle(fontSize: 28),
+                    ),
+                    Expanded(
+                      child: Text(
+                        'What should we call you?',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
                 const Text(
-                  'What should I call you?',
+                  'This name stays only on your device.',
                   style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 48),
-                TextField(
-                  controller: _nicknameController,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
-                    labelText: 'Nickname',
-                    hintText: 'e.g. John Doe',
+                const SizedBox(height: 32),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: TextField(
+                    controller: _nicknameController,
+                    onChanged: (value) => setState(() {}),
+                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
+                    decoration: InputDecoration(
+                      hintText: 'Eg: Johnnnie',
+                      hintStyle: const TextStyle(color: AppColors.textHint),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      suffixIcon: _nicknameController.text.isNotEmpty
+                          ? const Icon(Icons.check_circle_rounded, color: Colors.green, size: 20)
+                          : null,
+                    ),
                   ),
                 ),
                 const Spacer(),
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
+                    final bool isNotEmpty = _nicknameController.text.isNotEmpty;
                     return PrimaryButton(
-                      text: 'Create Account',
+                      text: 'Continue',
                       isLoading: state is AuthLoading,
-                      onPressed: () {
-                        if (_nicknameController.text.isNotEmpty) {
-                          context.read<AuthBloc>().add(CreateAccountRequested(
-                                phone: widget.phone,
-                                nickname: _nicknameController.text,
-                              ));
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter a nickname')),
-                          );
-                        }
-                      },
+                      onPressed: isNotEmpty ? () {
+                        context.read<AuthBloc>().add(CreateAccountRequested(
+                              phone: widget.phone,
+                              nickname: _nicknameController.text,
+                            ));
+                      } : null,
                     );
                   },
                 ),

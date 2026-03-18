@@ -19,53 +19,73 @@ class MonthlyLimitCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider.withOpacity(0.5), width: 1),
+        border: Border.all(color: AppColors.divider.withOpacity(0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'MONTHLY LIMIT',
+            style: TextStyle(
+              color: AppColors.textHint,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
-              const Text(
-                'You Spend',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+              Text(
+                '₹${currentSpend.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(width: 4),
               Text(
-                '₹${limit.toInt()}',
+                '/ ₹${limit.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
                 style: const TextStyle(
                   color: AppColors.textHint,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            '₹${currentSpend.toInt()}',
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
           const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6,
-              backgroundColor: AppColors.surfaceLight,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isOverLimit ? AppColors.expense : AppColors.primary,
+          Stack(
+            children: [
+              Container(
+                height: 6,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLighter,
+                  borderRadius: BorderRadius.circular(3),
+                ),
               ),
+              FractionallySizedBox(
+                widthFactor: progress,
+                child: Container(
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: isOverLimit ? AppColors.expense : const Color(0xFF2FB73C),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '${((1 - progress) * 100).toInt()}% Remaining',
+            style: const TextStyle(
+              color: AppColors.textHint,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

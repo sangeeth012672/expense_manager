@@ -14,61 +14,54 @@ class TransactionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Transactions'),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_month_rounded),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: BlocBuilder<TransactionBloc, TransactionState>(
-        builder: (context, state) {
-          if (state is TransactionLoading) {
-            return ListView(
-              padding: const EdgeInsets.all(24.0),
-              children: List.generate(8, (_) => const TransactionShimmer()),
-            );
-          }
-          if (state is TransactionLoaded) {
-            if (state.transactions.isEmpty) {
-              return _buildEmptyState();
-            }
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<TransactionBloc>().add(LoadTransactions());
-              },
-              child: ListView.builder(
+      body: SafeArea(
+        child: BlocBuilder<TransactionBloc, TransactionState>(
+          builder: (context, state) {
+            if (state is TransactionLoading) {
+              return ListView(
                 padding: const EdgeInsets.all(24.0),
-                itemCount: state.transactions.length,
-                itemBuilder: (context, index) {
-                  final transaction = state.transactions[index];
-                  return TransactionCard(transaction: transaction);
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 12),
+                  ...List.generate(8, (_) => const TransactionShimmer()),
+                ],
+              );
+            }
+            if (state is TransactionLoaded) {
+              return RefreshIndicator(
+                onRefresh: () async {
+                  context.read<TransactionBloc>().add(LoadTransactions());
                 },
-              ),
-            );
-          }
-          return const Center(child: Text('Error loading transactions'));
-        },
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(24.0),
+                  itemCount: state.transactions.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return _buildHeader();
+                    }
+                    final transaction = state.transactions[index - 1];
+                    return TransactionCard(transaction: transaction);
+                  },
+                ),
+              );
+            }
+            return const Center(child: Text('Error loading transactions'));
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.receipt_long_rounded, size: 80, color: AppColors.surfaceLight),
-          const SizedBox(height: 24),
-          const Text(
-            'No transactions found',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
-          ),
-        ],
+  Widget _buildHeader() {
+    return const Padding(
+      padding: EdgeInsets.only(top: 8.0, bottom: 24.0),
+      child: Text(
+        'Transactions',
+        style: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

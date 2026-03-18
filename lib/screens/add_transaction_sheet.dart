@@ -29,76 +29,67 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
         left: 24,
         right: 24,
         top: 24,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF17171F), // Figma Dark Background
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
+        ),
       ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Center(
-              child: Text(
-                'ADD Transaction',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Add Transaction',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             _buildTypeToggle(),
-            const SizedBox(height: 32),
-            const Text('How much?', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
-            TextField(
-              controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-              decoration: const InputDecoration(
-                hintText: '₹0',
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
+            const SizedBox(height: 24),
+            _buildInput(controller: _noteController, hint: 'Title'),
+            const SizedBox(height: 16),
+            _buildInput(controller: _amountController, hint: 'Amount ( ₹ )', keyboardType: TextInputType.number),
+            const SizedBox(height: 24),
+            const Text(
+              'CATEGORY',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
               ),
             ),
+            const SizedBox(height: 12),
+            _buildCategorySelector(),
             const SizedBox(height: 24),
-            _buildFieldLabel('Towards'),
-            TextField(
-              controller: _noteController,
-              decoration: const InputDecoration(hintText: 'What was this for?'),
-            ),
-            const SizedBox(height: 24),
-            _buildFieldLabel('Category'),
-            BlocBuilder<CategoryBloc, CategoryState>(
-              builder: (context, state) {
-                if (state is CategoryLoaded) {
-                  if (state.categories.isEmpty) {
-                    return const Text('No categories', style: TextStyle(color: AppColors.expense));
-                  }
-                  if (_selectedCategory == null || !state.categories.any((c) => c.id == _selectedCategory)) {
-                    _selectedCategory = state.categories.first.id;
-                  }
-                  return DropdownButtonFormField<String>(
-                    value: _selectedCategory,
-                    items: state.categories.map((c) {
-                      return DropdownMenuItem(value: c.id, child: Text(c.name));
-                    }).toList(),
-                    onChanged: (val) => setState(() => _selectedCategory = val),
-                  );
-                }
-                return const LinearProgressIndicator();
-              },
-            ),
-            const SizedBox(height: 40),
+            _buildPrivacyInfoBox(),
+            const SizedBox(height: 32),
             PrimaryButton(
               text: 'Save',
               onPressed: () {
-                final double? amount = double.tryParse(_amountController.text.replaceAll('₹', ''));
+                final double? amount = double.tryParse(_amountController.text);
                 if (amount != null && _noteController.text.isNotEmpty && _selectedCategory != null) {
                   context.read<TransactionBloc>().add(AddTransaction(
                     amount: amount,
@@ -107,37 +98,44 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                     categoryId: _selectedCategory!,
                   ));
                   Navigator.pop(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please fill all fields')),
+                  );
                 }
               },
             ),
-            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFieldLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        label,
-        style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500),
-      ),
-    );
-  }
-
   Widget _buildTypeToggle() {
     return Container(
+      height: 54,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.divider.withOpacity(0.5)),
       ),
       child: Row(
         children: [
-          Expanded(child: _buildToggleItem('Expense', 'debit', AppColors.expense)),
-          Expanded(child: _buildToggleItem('Income', 'credit', AppColors.income)),
+          Expanded(
+            child: _buildToggleItem(
+              'Expense', 
+              'debit', 
+              const Color(0xFF2FB73C), // Active Green from Figma
+            ),
+          ),
+          Expanded(
+            child: _buildToggleItem(
+              'Income', 
+              'credit', 
+              const Color(0xFF2FB73C), // Also Green when active? Following screenshot.
+            ),
+          ),
         ],
       ),
     );
@@ -148,10 +146,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     return GestureDetector(
       onTap: () => setState(() => _selectedType = type),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? activeColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Center(
           child: Text(
@@ -159,9 +156,103 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             style: TextStyle(
               color: isSelected ? Colors.white : AppColors.textSecondary,
               fontWeight: FontWeight.bold,
+              fontSize: 14,
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInput({required TextEditingController controller, required String hint, TextInputType? keyboardType}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: const TextStyle(color: Colors.white, fontSize: 16),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: AppColors.textHint),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 18),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategorySelector() {
+    return BlocBuilder<CategoryBloc, CategoryState>(
+      builder: (context, state) {
+        if (state is CategoryLoaded) {
+          if (_selectedCategory == null && state.categories.isNotEmpty) {
+            _selectedCategory = state.categories.first.id;
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: state.categories.map((c) {
+                bool isSelected = _selectedCategory == c.id;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedCategory = c.id),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFF20295C) : const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? const Color(0xFF4351FF) : AppColors.divider.withOpacity(0.5),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      c.name,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          );
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
+  Widget _buildPrivacyInfoBox() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF131A14), // Dark Green Background
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF1B2C1D)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline_rounded, color: Color(0xFF2FB73C), size: 20),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Everything you add here is saved only on your device.',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

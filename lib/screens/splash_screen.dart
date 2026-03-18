@@ -56,28 +56,29 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
+            // Bottom Right Shape (Purple)
             Transform(
-              transform: Matrix4.skewX(-0.3),
+              transform: Matrix4.translationValues(12, 12, 0)..setEntry(0, 1, -0.4),
               child: Container(
-                width: 25,
-                height: 60,
+                width: 45,
+                height: 65,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6A5AE0),
+                  color: const Color(0xFF4351FF),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            // Top Left Shape (Light Blue)
             Transform(
-              transform: Matrix4.skewX(-0.3),
+              transform: Matrix4.translationValues(-12, -12, 0)..setEntry(0, 1, -0.4),
               child: Container(
-                width: 25,
-                height: 45,
+                width: 45,
+                height: 65,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  color: const Color(0xFF0081FF),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),

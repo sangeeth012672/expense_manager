@@ -69,9 +69,20 @@ class _OtpScreenState extends State<OtpScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
-            onPressed: () => Navigator.pop(context),
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16.0, top: 8),
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.divider),
+                ),
+                child: const Icon(Icons.chevron_left_rounded, color: AppColors.textPrimary, size: 20),
+              ),
+            ),
           ),
         ),
         body: SafeArea(
@@ -81,7 +92,7 @@ class _OtpScreenState extends State<OtpScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Verify Code',
+                  'Verify OTP',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -90,11 +101,22 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Check your SMS messages. We\'ve sent you \nthe PIN at ${widget.phone}',
+                  'Enter the 6-Digit code sent to ${widget.phone.substring(0, 4)}****${widget.phone.substring(widget.phone.length - 2)}',
                   style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
-                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Text(
+                    'Change Number',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 48),
@@ -102,18 +124,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: List.generate(6, (index) => _buildOtpBox(index)),
                 ),
-                const SizedBox(height: 24),
-                Center(
-                  child: Text(
-                    'Testing Mode: OTP is 123456',
-                    style: TextStyle(
-                      color: AppColors.expense.withOpacity(0.8),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const Spacer(),
+                const SizedBox(height: 32),
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
                     return PrimaryButton(
@@ -136,6 +147,14 @@ class _OtpScreenState extends State<OtpScreen> {
                       },
                     );
                   },
+                ),
+                const SizedBox(height: 32),
+                const Text(
+                  'Resend OTP in 32s',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
