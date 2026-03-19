@@ -83,12 +83,16 @@ class TransactionCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              Text(
-                '${isExpense ? '-' : '+'}₹${transaction.amount.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
-                style: TextStyle(
-                  color: isExpense ? const Color(0xFFB10000) : const Color(0xFF2FB73C),
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '${isExpense ? '-' : '+'}₹${transaction.amount.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
+                  style: TextStyle(
+                    color: isExpense ? const Color(0xFFB10000) : const Color(0xFF2FB73C),
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],

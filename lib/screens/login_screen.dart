@@ -53,86 +53,88 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Get Started',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Log In Using Phone & OTP',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: TextField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
-                    decoration: InputDecoration(
-                      hintText: 'Phone',
-                      hintStyle: TextStyle(color: AppColors.textHint),
-                      prefixIcon: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '+91',
-                              style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Container(
-                              width: 1,
-                              height: 20,
-                              color: AppColors.divider,
-                            ),
-                          ],
-                        ),
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 20),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Get Started',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                ),
-                const Spacer(),
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    return PrimaryButton(
-                      text: 'Continue',
-                      isLoading: state is AuthLoading,
-                      onPressed: () {
-                        if (_phoneController.text.isNotEmpty) {
-                          context.read<AuthBloc>().add(SendOtpRequested(phone: _phoneController.text));
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter a valid phone number')),
-                          );
-                        }
-                      },
-                    );
-                  },
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Log In Using Phone & OTP',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
+                      decoration: InputDecoration(
+                        hintText: 'Phone',
+                        hintStyle: TextStyle(color: AppColors.textHint),
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                '+91',
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 1,
+                                height: 20,
+                                color: AppColors.divider,
+                              ),
+                            ],
+                          ),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 80), // Replaced Spacer with fixed gap
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      return PrimaryButton(
+                        text: 'Continue',
+                        isLoading: state is AuthLoading,
+                        onPressed: () {
+                          if (_phoneController.text.isNotEmpty) {
+                            context.read<AuthBloc>().add(SendOtpRequested(phone: _phoneController.text));
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please enter a valid phone number')),
+                            );
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
