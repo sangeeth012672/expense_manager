@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/auth_bloc.dart';
 import '../utils/app_colors.dart';
@@ -84,10 +85,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: TextField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
+                      maxLength: 10,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
                       decoration: InputDecoration(
                         hintText: 'Phone',
-                        hintStyle: TextStyle(color: AppColors.textHint),
+                        hintStyle: const TextStyle(color: AppColors.textHint),
+                        counterText: "", // Hide the counter
                         prefixIcon: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
@@ -122,11 +126,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         text: 'Continue',
                         isLoading: state is AuthLoading,
                         onPressed: () {
-                          if (_phoneController.text.isNotEmpty) {
+                          if (_phoneController.text.length == 10) {
                             context.read<AuthBloc>().add(SendOtpRequested(phone: _phoneController.text));
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please enter a valid phone number')),
+                              const SnackBar(content: Text('Please enter a valid 10-digit phone number')),
                             );
                           }
                         },
