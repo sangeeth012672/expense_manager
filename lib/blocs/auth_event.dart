@@ -48,3 +48,12 @@ class CreateAccountRequested extends AuthEvent {
 }
 
 class LogoutRequested extends AuthEvent {}
+
+class UpdateNicknameRequested extends AuthEvent {
+  final String nickname;
+
+  const UpdateNicknameRequested({required this.nickname});
+
+  @override
+  List<Object> get props => [nickname];
+}

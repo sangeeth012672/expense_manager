@@ -84,19 +84,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 32),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
+                              const Icon(Icons.auto_awesome_rounded, color: Color(0xFF9E8DF0), size: 18),
+                              const SizedBox(width: 8),
                               const Text(
-                                'Recent Transactions', 
+                                'Transactions Card', 
                                 style: TextStyle(
-                                  fontSize: 18, 
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
+                                  fontSize: 16, 
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF9E8DF0),
                                 ),
                               ),
+                              const Spacer(),
                               TextButton(
                                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TransactionsScreen())),
-                                child: const Text('See All', style: TextStyle(color: AppColors.primary)),
+                                child: const Text('See All', style: TextStyle(color: Color(0xFF4351FF))),
                               ),
                             ],
                           ),

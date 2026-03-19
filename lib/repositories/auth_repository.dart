@@ -60,6 +60,11 @@ class AuthRepository {
     return prefs.getString('phone');
   }
 
+  Future<void> updateNickname(String nickname) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('nickname', nickname);
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');

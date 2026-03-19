@@ -86,15 +86,15 @@ class _MainScreenState extends State<MainScreen> {
       child: Scaffold(
         body: _screens[_selectedIndex],
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
+        padding: const EdgeInsets.only(bottom: 24, left: 60, right: 60), // Narrower capsule
         child: Container(
           height: 64,
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
+            color: const Color(0xFF131313), // Match theme dark
             borderRadius: BorderRadius.circular(32),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withOpacity(0.5),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -104,8 +104,8 @@ class _MainScreenState extends State<MainScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildNavItem(0, Icons.pie_chart_rounded),
-              _buildNavItem(1, Icons.history_rounded),
-              _buildNavItem(2, Icons.account_circle_rounded),
+              _buildNavItem(1, Icons.sync_rounded),
+              _buildNavItem(2, Icons.manage_accounts_rounded),
             ],
           ),
         ),
@@ -129,16 +129,17 @@ class _MainScreenState extends State<MainScreen> {
     final isSelected = _selectedIndex == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedIndex = index),
-      child: Container(
-        width: 44,
-        height: 44,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 48,
+        height: 48,
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF4351FF) : Colors.transparent,
           shape: BoxShape.circle,
         ),
         child: Icon(
           icon,
-          color: isSelected ? Colors.white : Colors.white54,
+          color: Colors.white,
           size: 24,
         ),
       ),
