@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/auth_bloc.dart';
@@ -29,9 +30,32 @@ class OtpScreen extends StatefulWidget {
 class _OtpScreenState extends State<OtpScreen> {
   final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  Timer? _timer;
+  int _secondsRemaining = 30;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    _secondsRemaining = 30;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining > 0) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
+        _timer?.cancel();
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _timer?.cancel();
     for (var controller in _controllers) {
       controller.dispose();
     }
@@ -88,104 +112,126 @@ class _OtpScreenState extends State<OtpScreen> {
           ),
         ),
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Verify OTP',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Enter the 6-Digit code sent to ${widget.phone.substring(0, 4)}****${widget.phone.substring(widget.phone.length - 2)}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Text(
-                    'Change Number',
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Verify OTP',
                     style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                ),
-                if (widget.otp != null) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Enter the 6-Digit code sent to ${widget.phone.substring(0, 4)}****${widget.phone.substring(widget.phone.length - 2)}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 18),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Test OTP: ${widget.otp}',
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                  ),
+                  const SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Text(
+                      'Change Number',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (widget.otp != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Test OTP: ${widget.otp}',
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                  ],
+                  const SizedBox(height: 48),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(6, (index) => _buildOtpBox(index)),
+                  ),
+                  const SizedBox(height: 32),
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      return PrimaryButton(
+                        text: 'Verify',
+                        isLoading: state is AuthLoading,
+                        onPressed: () {
+                          final expectedOtp = widget.otp ?? '123456';
+                          if (_otp == expectedOtp) {
+                            context.read<AuthBloc>().add(VerifyOtpRequested(
+                                  phone: widget.phone,
+                                  otp: _otp,
+                                  userExists: widget.userExists,
+                                  token: widget.token,
+                                  nickname: widget.nickname,
+                                ));
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Invalid OTP. Use $expectedOtp for testing.')),
+                            );
+                          }
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  Center(
+                    child: _secondsRemaining > 0
+                        ? Text(
+                            'Resend OTP in ${_secondsRemaining}s',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 14,
+                            ),
+                          )
+                        : TextButton(
+                            onPressed: () {
+                              context.read<AuthBloc>().add(SendOtpRequested(phone: widget.phone));
+                              _startTimer();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('OTP Resent successfully')),
+                              );
+                            },
+                            child: const Text(
+                              'Resend OTP',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                   ),
                 ],
-                const SizedBox(height: 48),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List.generate(6, (index) => _buildOtpBox(index)),
-                ),
-                const SizedBox(height: 32),
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    return PrimaryButton(
-                      text: 'Verify',
-                      isLoading: state is AuthLoading,
-                      onPressed: () {
-                        final expectedOtp = widget.otp ?? '123456';
-                        if (_otp == expectedOtp) {
-                          context.read<AuthBloc>().add(VerifyOtpRequested(
-                                phone: widget.phone,
-                                otp: _otp,
-                                userExists: widget.userExists,
-                                token: widget.token,
-                                nickname: widget.nickname,
-                              ));
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Invalid OTP. Use $expectedOtp for testing.')),
-                          );
-                        }
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Resend OTP in 32s',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
