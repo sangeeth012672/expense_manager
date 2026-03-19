@@ -9,6 +9,9 @@ import '../blocs/transaction_state.dart';
 import 'profile_screen.dart';
 import 'add_transaction_sheet.dart';
 import 'splash_screen.dart';
+import '../blocs/category_bloc.dart';
+import '../blocs/category_event.dart';
+import '../blocs/transaction_event.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -19,6 +22,14 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Refresh data when user enters the main area
+    context.read<CategoryBloc>().add(LoadCategories());
+    context.read<TransactionBloc>().add(LoadTransactions());
+  }
 
   final List<Widget> _screens = [
     const HomeScreen(),

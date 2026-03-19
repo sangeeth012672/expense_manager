@@ -1,26 +1,34 @@
 import 'package:uuid/uuid.dart';
 import '../models/category_model.dart';
 import 'database_helper.dart';
+import 'auth_repository.dart';
 
 class CategoryRepository {
   final _uuid = const Uuid();
+  final AuthRepository authRepository;
+
+  CategoryRepository({required this.authRepository});
 
   Future<Category> addCategory(String name) async {
     final db = await DatabaseHelper.instance.database;
+    final phone = await authRepository.getPhone();
     final category = Category(
       id: _uuid.v4(),
       name: name,
     );
-    await db.insert('categories', category.toJson());
+    final json = category.toJson();
+    json['user_phone'] = phone;
+    await db.insert('categories', json);
     return category;
   }
 
   Future<List<Category>> getActiveCategories() async {
     final db = await DatabaseHelper.instance.database;
+    final phone = await authRepository.getPhone();
     final maps = await db.query(
       'categories',
-      where: 'is_deleted = ?',
-      whereArgs: [0],
+      where: 'is_deleted = ? AND user_phone = ?',
+      whereArgs: [0, phone],
     );
     return maps.map((e) => Category.fromJson(e)).toList();
   }
@@ -38,21 +46,23 @@ class CategoryRepository {
   // Used for syncing
   Future<List<Category>> getUnsyncedCategories() async {
     final db = await DatabaseHelper.instance.database;
+    final phone = await authRepository.getPhone();
     final maps = await db.query(
       'categories',
-      where: 'is_synced = ? AND is_deleted = ?',
-      whereArgs: [0, 0],
+      where: 'is_synced = ? AND is_deleted = ? AND user_phone = ?',
+      whereArgs: [0, 0, phone],
     );
     return maps.map((e) => Category.fromJson(e)).toList();
   }
   
   Future<List<String>> getDeletedCategoriesIds() async {
-     final db = await DatabaseHelper.instance.database;
+    final db = await DatabaseHelper.instance.database;
+    final phone = await authRepository.getPhone();
      final maps = await db.query(
       'categories',
       columns: ['id'],
-      where: 'is_deleted = ?',
-      whereArgs: [1],
+      where: 'is_deleted = ? AND user_phone = ?',
+      whereArgs: [1, phone],
     );
     return maps.map((e) => e['id'] as String).toList();
   }

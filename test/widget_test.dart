@@ -19,8 +19,8 @@ void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     final client = http.Client();
     final authRepository = AuthRepository(client: client);
-    final categoryRepository = CategoryRepository();
-    final transactionRepository = TransactionRepository();
+    final categoryRepository = CategoryRepository(authRepository: authRepository);
+    final transactionRepository = TransactionRepository(authRepository: authRepository);
     final syncRepository = SyncRepository(
        client: client,
        authRepository: authRepository,

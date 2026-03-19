@@ -54,7 +54,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // and based on user_exists:
     // If true, we already have token & nickname from the first step.
     if (event.userExists == true) {
-      await authRepository.saveTokenAndNickname(event.token ?? '', event.nickname ?? '');
+      await authRepository.saveTokenAndNickname(event.token ?? '', event.nickname ?? '', event.phone);
       emit(AuthAuthenticated(token: event.token ?? '', nickname: event.nickname));
     } else {
       emit(AuthNeedsNickname(phone: event.phone));
@@ -65,7 +65,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final response = await authRepository.createAccount(event.phone, event.nickname);
-      await authRepository.saveTokenAndNickname(response.token ?? '', event.nickname);
+      await authRepository.saveTokenAndNickname(response.token ?? '', event.nickname, event.phone);
       emit(AuthAuthenticated(token: response.token ?? '', nickname: event.nickname));
     } catch (e) {
       emit(AuthError(error: e.toString()));

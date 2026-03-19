@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import '../utils/theme.dart';
 import '../models/auth_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'database_helper.dart';
 import 'settings_repository.dart';
 
 class AuthRepository {
@@ -39,10 +38,11 @@ class AuthRepository {
     }
   }
 
-  Future<void> saveTokenAndNickname(String token, String nickname) async {
+  Future<void> saveTokenAndNickname(String token, String nickname, String phone) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
     await prefs.setString('nickname', nickname);
+    await prefs.setString('phone', phone);
   }
 
   Future<String?> getToken() async {
@@ -55,13 +55,19 @@ class AuthRepository {
     return prefs.getString('nickname');
   }
 
+  Future<String?> getPhone() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('phone');
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('nickname');
+    await prefs.remove('phone');
     
-    // Clear local data
-    await DatabaseHelper.instance.clearAllData();
+    // Clear local data - REMOVED to persist data for user isolation
+    // await DatabaseHelper.instance.clearAllData();
     await SettingsRepository().clearAllSettings();
   }
 }

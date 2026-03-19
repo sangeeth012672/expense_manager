@@ -19,9 +19,17 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE categories ADD COLUMN user_phone TEXT');
+      await db.execute('ALTER TABLE transactions ADD COLUMN user_phone TEXT');
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -35,6 +43,7 @@ class DatabaseHelper {
       CREATE TABLE categories (
         id $idType,
         name $textType,
+        user_phone TEXT,
         is_synced $intType,
         is_deleted $intType
       )
@@ -48,6 +57,7 @@ class DatabaseHelper {
         note $textType,
         type $textType,
         category_id TEXT,
+        user_phone TEXT,
         is_synced $intType,
         is_deleted $intType,
         timestamp $textType,
